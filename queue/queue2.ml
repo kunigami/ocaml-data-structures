@@ -48,6 +48,12 @@ let push (elem: 'a) (queue: 'a queue): ('a queue) = match queue with
   | (left, right) -> (left, elem :: right)
 ;;
 
+let append (queue: 'a queue) (otherQueue: 'a queue): ('a queue) = match (queue, otherQueue) with
+  | ((leftA, rightA), (leftB, rightB)) -> (
+      leftA,
+      rightB @ (List.rev leftB) @ rightA
+    )
+
 (* Decides whether the queue is empty *)
 let empty (queue: 'a queue): bool = match queue with
  | ([], _) -> true

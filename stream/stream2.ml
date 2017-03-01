@@ -24,6 +24,14 @@ let rec toList (stream: 'a stream): ('a list) =
     | StreamCell (elem, rest) -> elem :: (toList rest)
 ;;
 
+let empty = lazy Nil;;
+
+let rec insert (elem: 'a) (stream: 'a stream): ('a stream) =
+  let computedStream = Lazy.force stream in
+  match computedStream with
+    | Nil -> lazy (StreamCell (elem, lazy Nil))
+    | StreamCell (oldElem, rest) -> lazy (StreamCell (elem, insert oldElem rest))
+
 (*
   Concatenate two streams. Note that it never evaluates streamB and it only
   evaluates the first cell of streamA.
@@ -34,6 +42,8 @@ let rec (++) (streamA: 'a stream) (streamB: 'a stream): ('a stream) =
     | Nil -> streamB
     | StreamCell (elem, rest) -> lazy (StreamCell (elem, rest ++ streamB))
 ;;
+
+let concat = (++);;
 
 (*
   Lazily extracts the first n elements from a stream. Recursive calls are

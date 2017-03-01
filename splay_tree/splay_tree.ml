@@ -118,6 +118,9 @@ let rec findMin tree = match tree with
   | Node (left, elem, _) -> findMin left
 ;;
 
+(*
+  Remove the minimum element in the tree, performing rotations at every 2 levels
+*)
 let rec deleteMin tree = match tree with
   | Empty -> Empty
   | Node (Empty, elem, right) -> right
