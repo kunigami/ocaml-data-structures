@@ -20,11 +20,13 @@ exception Empty_queue
 let newEmpty = ([], [])
 ;;
 
+(* Returns the first element of the queue *)
 let front (queue: 'a queue): 'a = match queue with
   | ([], _) -> raise Empty_queue
   | (x::xs, _) -> x
 ;;
 
+(* Returns the queue without the first element. Also known as tail() *)
 let rec pop (queue: 'a queue): ('a queue) = match queue with
   (* If 'left' is empty, 'right' must be empty due to the invariant *)
   | ([], _) -> ([], [])
@@ -36,6 +38,7 @@ let rec pop (queue: 'a queue): ('a queue) = match queue with
   | (x::xs, right) -> (xs, right)
 ;;
 
+(* Inserts an element at the end of the queue *)
 let push (elem: 'a) (queue: 'a queue): ('a queue) = match queue with
   (*
     'right' must be empty due to the invariant. This is the only case in which
@@ -45,6 +48,7 @@ let push (elem: 'a) (queue: 'a queue): ('a queue) = match queue with
   | (left, right) -> (left, elem :: right)
 ;;
 
+(* Decides whether the queue is empty *)
 let empty (queue: 'a queue): bool = match queue with
  | ([], _) -> true
  | _ -> false
