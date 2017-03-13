@@ -27,11 +27,6 @@ let isEmpty (queue: 'a queueSuspended): bool = match queue with
   (_, frontSize, _, _, _) -> frontSize == 0
 ;;
 
-(* let push (elem: 'a) (queue: 'a queueSuspended): ('a queueSuspended) = match queue with
-  (leftSize, left, rightSize, right) ->
-    check (leftSize, left, rightSize + 1, Stream2.insert elem right)
-;; *)
-
 (*
   Makes sure the queue satisfies the invariant: If lazyFront is non-empty,
   forcedFront is non-empty
