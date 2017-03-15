@@ -27,6 +27,9 @@ let isEmpty (queue: 'a queueSuspended): bool = match queue with
   (_, frontSize, _, _, _) -> frontSize == 0
 ;;
 
+exception Empty_queue
+;;
+
 (*
   Makes sure the queue satisfies the invariant: If lazyFront is non-empty,
   forcedFront is non-empty
@@ -68,3 +71,21 @@ let push (queue: 'a queueSuspended) (elem: 'a): ('a queueSuspended) =
       rearSize + 1,
       elem :: rear
     )
+;;
+
+let pop (queue: 'a queueSuspended): ('a queueSuspended) = match queue with
+  | ([], _, _, _, _) -> raise Empty_queue
+  | (head :: forcedFront, frontSize, lazyFront, rearSize, rear) ->
+      checkInvariants (
+        forcedFront,
+        frontSize - 1,
+        lazy (List.tl (Lazy.force lazyFront)),
+        rearSize,
+        rear
+        )
+;;
+
+let peek (queue: 'a queueSuspended): 'a = match queue with
+  | ([], _, _, _, _) -> raise Empty_queue
+  | (head :: forcedFront, _, _, _, _) -> head
+;;
