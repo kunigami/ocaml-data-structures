@@ -34,26 +34,22 @@ exception Empty_queue
   Makes sure the queue satisfies the invariant: If lazyFront is non-empty,
   forcedFront is non-empty
 *)
-let checkForcedFrontInvariant (queue: 'a queueSuspended): ('a queueSuspended) =
-  match queue with
-    | ([], frontSize, lazyFront, rearSize, rear) ->
-      (Lazy.force lazyFront, frontSize, lazyFront, rearSize, rear)
-    | queue -> queue
+let conformToForcedFrontInvariant (
+  queue: 'a queueSuspended
+): ('a queueSuspended) = match queue with
+  | ([], frontSize, lazyFront, rearSize, rear) ->
+    (Lazy.force lazyFront, frontSize, lazyFront, rearSize, rear)
+  | queue -> queue
 ;;
 
-(*
-  Makes sure the queue satisfies the invariant: The front list must never be
-  smaller than the rear list
-*)
-let checkInvariants (
+let conformToFrontNotSmallerThanRear (
   queue: 'a queueSuspended
 ): ('a queueSuspended) = match queue with
   (forcedFront, frontSize, lazyFront, rearSize, rear) ->
-    if rearSize <= frontSize then checkForcedFrontInvariant queue
-    (* Invariant violated: reverse rear and concatenate w/ frontLazy. Not that
-    we do not update frontForced with the newest version of front *)
-    else let front = Lazy.force lazyFront
-      in checkForcedFrontInvariant (
+    if rearSize <= frontSize then queue
+    else
+      let front = Lazy.force lazyFront
+      in (
         front,
         frontSize + rearSize,
         lazy (front @ (List.rev rear)),
@@ -62,9 +58,18 @@ let checkInvariants (
       )
 ;;
 
+(*
+  Makes sure the queue satisfies the invariant: The front list must never be
+  smaller than the rear list
+*)
+let conformToInvariants (queue: 'a queueSuspended): ('a queueSuspended) = 
+  let queue = conformToFrontNotSmallerThanRear queue
+  in conformToForcedFrontInvariant queue
+;;
+
 let push (queue: 'a queueSuspended) (elem: 'a): ('a queueSuspended) =
   match queue with (forcedFront, frontSize, lazyFront, rearSize, rear) ->
-    checkInvariants (
+    conformToInvariants (
       forcedFront,
       frontSize,
       lazyFront,
@@ -76,7 +81,7 @@ let push (queue: 'a queueSuspended) (elem: 'a): ('a queueSuspended) =
 let pop (queue: 'a queueSuspended): ('a queueSuspended) = match queue with
   | ([], _, _, _, _) -> raise Empty_queue
   | (head :: forcedFront, frontSize, lazyFront, rearSize, rear) ->
-      checkInvariants (
+      conformToInvariants (
         forcedFront,
         frontSize - 1,
         lazy (List.tl (Lazy.force lazyFront)),
