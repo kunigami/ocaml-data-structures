@@ -29,7 +29,6 @@ let newEmpty = {
   schedule = Stream2.empty
 }
 
-(* TODO: Change input parameter to record *)
 let rec rotate (queue: 'a realTimeQueue) = match queue with { front; rear; schedule } ->
   let forced_front = Lazy.force front in
   match rear with
