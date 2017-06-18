@@ -22,10 +22,9 @@ module Real_time_queue_ =
     }
 
     (* Fill in the type for the implementation *)
-    type 'a t = 'a realTimeQueue
+    type 'a t = 'a realTimeQueue;;
 
-    exception Empty_queue
-    ;;
+    exception Empty_queue;;
 
     let newEmpty = {
       front = Stream2.empty;
