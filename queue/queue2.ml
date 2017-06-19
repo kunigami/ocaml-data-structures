@@ -14,7 +14,7 @@
 
 open IQueue;;
 
-module Queue2_ =
+module Queue2: IQueue =
   struct
     type 'a queue = 'a list * 'a list;;
     type 'a t = 'a queue;;
@@ -71,5 +71,3 @@ module Queue2_ =
       else (peek queue) :: (toList (pop queue))
     ;;
 end;;
-
-module Queue2 = (Queue2_: IQueue);;

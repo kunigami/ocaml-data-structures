@@ -14,7 +14,7 @@
 open Stream2;;
 open IQueue;;
 
-module Queue_stream_ =
+module Queue_stream: IQueue =
   struct
     (*
       - size of front stream
@@ -71,5 +71,3 @@ module Queue_stream_ =
     ;;
 
 end;;
-
-module Queue_stream = (Queue_stream_: IQueue);;

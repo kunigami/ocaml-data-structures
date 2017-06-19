@@ -22,7 +22,7 @@
 
 open IQueue;;
 
-module Queue_suspended_ =
+module Queue_suspended: IQueue =
   struct
     type 'a queueSuspended = 'a list * int * ('a list) Lazy.t * int * 'a list;;
     type 'a t = 'a queueSuspended;;
@@ -107,5 +107,3 @@ module Queue_suspended_ =
         in front @ (List.rev rear)
     ;;
 end;;
-
-module Queue_suspended = (Queue_suspended_: IQueue);;

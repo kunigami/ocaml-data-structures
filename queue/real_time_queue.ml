@@ -13,7 +13,7 @@
 open Stream2;;
 open IQueue;;
 
-module Real_time_queue_ =
+module Real_time_queue: IQueue =
   struct
     type 'a realTimeQueue = {
       front: 'a stream;
@@ -94,5 +94,3 @@ module Real_time_queue_ =
     ;;
 
 end;;
-
-module Real_time_queue = (Real_time_queue_: IQueue);;
