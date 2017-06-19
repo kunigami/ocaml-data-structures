@@ -1,19 +1,23 @@
+package_dependencies = -package oUnit -package batteries
+test_dependencies = test_base.ml
+compiler_flags = -linkpkg -g
+
 all: compile test
 compile:
 	ocamlc -I ../stream/ ../stream/stream2.ml queue_stream.ml -o queue_stream
-test: test_stream_queue test_queue test_suspended_queue
-test_stream_queue:
-	ocamlfind ocamlc -o queue_stream_test -package oUnit -package batteries -linkpkg -g -I ../stream/ ../stream/stream2.ml iQueue.ml queue_stream.ml test_base.ml queue_stream_test.ml
-	./queue_stream_test
-test_queue:
-	ocamlfind ocamlc -o queue2_test -package oUnit -linkpkg -g queue2.ml queue2_test.ml
-	./queue2_test
-test_suspended_queue:
-	ocamlfind ocamlc -o queue_suspended_test -package oUnit -linkpkg -g queue_suspended.ml queue_suspended_test.ml
-	./queue_suspended_test
-test_real_time_queue:
-	# ocamlc -c real_time_queue.mli
-	ocamlfind ocamlc -o real_time_queue_test -package oUnit -package batteries -linkpkg -g -I ../stream/ ../stream/stream2.ml iQueue.ml real_time_queue.ml test_base.ml real_time_queue_test.ml
-	./real_time_queue_test
+test: queue_stream_test queue2_test queue_suspended_test real_time_queue_test
+queue_stream_test:
+	ocamlfind ocamlc -o $@ $(package_dependencies) $(compiler_flags) -I ../stream/ ../stream/stream2.ml iQueue.ml queue_stream.ml test_base.ml queue_stream_test.ml
+	./$@
+queue2_test:
+	ocamlfind ocamlc -o $@ $(package_dependencies) $(compiler_flags) iQueue.ml queue2.ml $(test_dependencies) queue2_test.ml
+	./$@
+queue_suspended_test:
+	ocamlfind ocamlc -o $@ $(package_dependencies) $(compiler_flags) iQueue.ml queue_suspended.ml $(test_dependencies) queue_suspended_test.ml
+	./$@
+real_time_queue_test:
+	ocamlfind ocamlc -o $@ $(package_dependencies) $(compiler_flags) -I ../stream/ ../stream/stream2.ml iQueue.ml real_time_queue.ml $(test_dependencies) real_time_queue_test.ml
+	./$@
+.PHONY: queue_stream_test queue2_test queue_suspended_test real_time_queue_test
 clean:
 	rm -f *.cmi *.cmo ./queue_stream ./queue2_test ./queue_stream_test ./queue_suspension_test ./real_time_queue_test

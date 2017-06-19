@@ -10,52 +10,66 @@
 
   The invariant we keep is that if 'left' is empty then 'right' must empty as
   well.
-
 *)
-type 'a queue = 'a list * 'a list
 
-exception Empty_queue
-;;
+open IQueue;;
 
-let newEmpty = ([], [])
-;;
+module Queue2_ =
+  struct
+    type 'a queue = 'a list * 'a list;;
+    type 'a t = 'a queue;;
 
-(* Returns the first element of the queue *)
-let front (queue: 'a queue): 'a = match queue with
-  | ([], _) -> raise Empty_queue
-  | (x::xs, _) -> x
-;;
+    exception Empty_queue
+    ;;
 
-(* Returns the queue without the first element. Also known as tail() *)
-let rec pop (queue: 'a queue): ('a queue) = match queue with
-  (* If 'left' is empty, 'right' must be empty due to the invariant *)
-  | ([], _) -> ([], [])
-  (*
-    If 'left' will be empty after the removal, transfer elements from the
-    right
-  *)
-  | ([x], right) -> (List.rev right, [])
-  | (x::xs, right) -> (xs, right)
-;;
+    let newEmpty = ([], [])
+    ;;
 
-(* Inserts an element at the end of the queue *)
-let push (elem: 'a) (queue: 'a queue): ('a queue) = match queue with
-  (*
-    'right' must be empty due to the invariant. This is the only case in which
-    insert the element in the left to keep the invariant.
-  *)
-  | ([], _) -> ([elem], [])
-  | (left, right) -> (left, elem :: right)
-;;
+    (* Returns the first element of the queue *)
+    let peek (queue: 'a queue): 'a = match queue with
+      | ([], _) -> raise Empty_queue
+      | (x::xs, _) -> x
+    ;;
 
-let append (queue: 'a queue) (otherQueue: 'a queue): ('a queue) = match (queue, otherQueue) with
-  | ((leftA, rightA), (leftB, rightB)) -> (
-      leftA,
-      rightB @ (List.rev leftB) @ rightA
-    )
+    (* Returns the queue without the first element. Also known as tail() *)
+    let rec pop (queue: 'a queue): ('a queue) = match queue with
+      (* If 'left' is empty, 'right' must be empty due to the invariant *)
+      | ([], _) -> ([], [])
+      (*
+        If 'left' will be empty after the removal, transfer elements from the
+        right
+      *)
+      | ([x], right) -> (List.rev right, [])
+      | (x::xs, right) -> (xs, right)
+    ;;
 
-(* Decides whether the queue is empty *)
-let empty (queue: 'a queue): bool = match queue with
- | ([], _) -> true
- | _ -> false
-;;
+    (* Inserts an element at the end of the queue *)
+    let push (elem: 'a) (queue: 'a queue): ('a queue) = match queue with
+      (*
+        'right' must be empty due to the invariant. This is the only case in which
+        insert the element in the left to keep the invariant.
+      *)
+      | ([], _) -> ([elem], [])
+      | (left, right) -> (left, elem :: right)
+    ;;
+
+    let append (queue: 'a queue) (otherQueue: 'a queue): ('a queue) = match (queue, otherQueue) with
+      | ((leftA, rightA), (leftB, rightB)) -> (
+          leftA,
+          rightB @ (List.rev leftB) @ rightA
+        )
+    ;;
+
+    (* Decides whether the queue is empty *)
+    let empty (queue: 'a queue): bool = match queue with
+     | ([], _) -> true
+     | _ -> false
+    ;;
+
+    let rec toList (queue: 'a queue): 'a list =
+      if empty queue then []
+      else (peek queue) :: (toList (pop queue))
+    ;;
+end;;
+
+module Queue2 = (Queue2_: IQueue);;

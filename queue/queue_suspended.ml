@@ -19,78 +19,93 @@
     1) The front list must never be smaller than the rear list
     2) Whenever lazyFront is non-empty, forcedFront is non-empty
 *)
-type 'a queueSuspended = 'a list * int * ('a list) Lazy.t * int * 'a list;;
 
-let newEmpty = ([], 0, lazy [], 0, [])
+open IQueue;;
 
-let isEmpty (queue: 'a queueSuspended): bool = match queue with
-  (_, frontSize, _, _, _) -> frontSize == 0
-;;
+module Queue_suspended_ =
+  struct
+    type 'a queueSuspended = 'a list * int * ('a list) Lazy.t * int * 'a list;;
+    type 'a t = 'a queueSuspended;;
 
-exception Empty_queue
-;;
+    let newEmpty = ([], 0, lazy [], 0, [])
 
-(*
-  Makes sure the queue satisfies the invariant: If lazyFront is non-empty,
-  forcedFront is non-empty
-*)
-let conformToForcedFrontInvariant (
-  queue: 'a queueSuspended
-): ('a queueSuspended) = match queue with
-  | ([], frontSize, lazyFront, rearSize, rear) ->
-    (Lazy.force lazyFront, frontSize, lazyFront, rearSize, rear)
-  | queue -> queue
-;;
+    let isEmpty (queue: 'a queueSuspended): bool = match queue with
+      (_, frontSize, _, _, _) -> frontSize == 0
+    ;;
 
-let conformToFrontNotSmallerThanRear (
-  queue: 'a queueSuspended
-): ('a queueSuspended) = match queue with
-  (forcedFront, frontSize, lazyFront, rearSize, rear) ->
-    if rearSize <= frontSize then queue
-    else
-      let front = Lazy.force lazyFront
-      in (
-        front,
-        frontSize + rearSize,
-        lazy (front @ (List.rev rear)),
-        0,
-        []
-      )
-;;
+    exception Empty_queue
+    ;;
 
-(*
-  Makes sure the queue satisfies the invariant: The front list must never be
-  smaller than the rear list
-*)
-let conformToInvariants (queue: 'a queueSuspended): ('a queueSuspended) = 
-  let queue = conformToFrontNotSmallerThanRear queue
-  in conformToForcedFrontInvariant queue
-;;
+    (*
+      Makes sure the queue satisfies the invariant: If lazyFront is non-empty,
+      forcedFront is non-empty
+    *)
+    let conformToForcedFrontInvariant (
+      queue: 'a queueSuspended
+    ): ('a queueSuspended) = match queue with
+      | ([], frontSize, lazyFront, rearSize, rear) ->
+        (Lazy.force lazyFront, frontSize, lazyFront, rearSize, rear)
+      | queue -> queue
+    ;;
 
-let push (queue: 'a queueSuspended) (elem: 'a): ('a queueSuspended) =
-  match queue with (forcedFront, frontSize, lazyFront, rearSize, rear) ->
-    conformToInvariants (
-      forcedFront,
-      frontSize,
-      lazyFront,
-      rearSize + 1,
-      elem :: rear
-    )
-;;
+    let conformToFrontNotSmallerThanRear (
+      queue: 'a queueSuspended
+    ): ('a queueSuspended) = match queue with
+      (forcedFront, frontSize, lazyFront, rearSize, rear) ->
+        if rearSize <= frontSize then queue
+        else
+          let front = Lazy.force lazyFront
+          in (
+            front,
+            frontSize + rearSize,
+            lazy (front @ (List.rev rear)),
+            0,
+            []
+          )
+    ;;
 
-let pop (queue: 'a queueSuspended): ('a queueSuspended) = match queue with
-  | ([], _, _, _, _) -> raise Empty_queue
-  | (head :: forcedFront, frontSize, lazyFront, rearSize, rear) ->
-      conformToInvariants (
-        forcedFront,
-        frontSize - 1,
-        lazy (List.tl (Lazy.force lazyFront)),
-        rearSize,
-        rear
+    (*
+      Makes sure the queue satisfies the invariant: The front list must never be
+      smaller than the rear list
+    *)
+    let conformToInvariants (queue: 'a queueSuspended): ('a queueSuspended) =
+      let queue = conformToFrontNotSmallerThanRear queue
+      in conformToForcedFrontInvariant queue
+    ;;
+
+    let push (elem: 'a) (queue: 'a queueSuspended): ('a queueSuspended) =
+      match queue with (forcedFront, frontSize, lazyFront, rearSize, rear) ->
+        conformToInvariants (
+          forcedFront,
+          frontSize,
+          lazyFront,
+          rearSize + 1,
+          elem :: rear
         )
-;;
+    ;;
 
-let peek (queue: 'a queueSuspended): 'a = match queue with
-  | ([], _, _, _, _) -> raise Empty_queue
-  | (head :: forcedFront, _, _, _, _) -> head
-;;
+    let pop (queue: 'a queueSuspended): ('a queueSuspended) = match queue with
+      | ([], _, _, _, _) -> raise Empty_queue
+      | (head :: forcedFront, frontSize, lazyFront, rearSize, rear) ->
+          conformToInvariants (
+            forcedFront,
+            frontSize - 1,
+            lazy (List.tl (Lazy.force lazyFront)),
+            rearSize,
+            rear
+            )
+    ;;
+
+    let peek (queue: 'a queueSuspended): 'a = match queue with
+      | ([], _, _, _, _) -> raise Empty_queue
+      | (head :: forcedFront, _, _, _, _) -> head
+    ;;
+
+    let toList (queue: 'a queueSuspended): 'a list =
+      match queue with (forcedFront, frontSize, lazyFront, rearSize, rear) ->
+        let front = Lazy.force lazyFront
+        in front @ (List.rev rear)
+    ;;
+end;;
+
+module Queue_suspended = (Queue_suspended_: IQueue);;

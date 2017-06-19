@@ -1,6 +1,12 @@
 open IQueue;;
 open OUnit2;;
 
+(*
+  This file contains tests to the abstract data structure queue (regardless of implementation).
+  They should be included in specific implementation test files. They must implement the IQueue
+  interface.
+*)
+
 let testSingleInsertion queueModule text_ctx =
   let module Queue = (val queueModule: IQueue) in
   let result = Queue.push 10 Queue.newEmpty in
@@ -18,7 +24,6 @@ let testMultipleInsertions queueModule text_ctx =
     Queue.newEmpty
     [10; 20; 30]
   ) in
-  let () = List.iter (Printf.printf "%d;") (Queue.toList result) in
   assert_equal
     ~msg:"Should insert many elements properly"
     (Queue.toList result)
