@@ -32,10 +32,13 @@
 
 open Set;;
 open Stream2;;
+open IHeap;;
 
 module Stream = Stream2;;
 
-module Scheduled_binomial_heap(Element: Set.OrderedType) =
+module Scheduled_binomial_heap
+  (Element: Set.OrderedType):
+IHeap with type tv = Element.t =
   struct
     type tree = Node of Element.t * tree list;;
     type tv = Element.t
@@ -96,9 +99,9 @@ module Scheduled_binomial_heap(Element: Set.OrderedType) =
     ;;
 
     (*
-      Execute or evaluate the first item of the schedule. If the first digit of the item is Zero, we
-      re-schedule the rest of the digits. If it's a One, it means that the remaining digits have
-      been executed, so we just discard it.
+      Execute (evaluate) the first item of the schedule. If the first digit of
+      the item is Zero, we re-schedule the rest of the digits. If it's a One, it
+      means that the remaining digits have been executed, so we just discard it.
     *)
     let execSchedule (schedule: digit stream list): digit stream list = match schedule with
       | [] -> []
