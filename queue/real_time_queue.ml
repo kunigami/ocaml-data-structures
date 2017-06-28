@@ -13,6 +13,8 @@
 open Stream2;;
 open IQueue;;
 
+module Stream = Stream2;;
+
 module Real_time_queue: IQueue =
   struct
     type 'a realTimeQueue = {
@@ -27,13 +29,12 @@ module Real_time_queue: IQueue =
     exception Empty_queue;;
 
     let newEmpty = {
-      front = Stream2.empty;
+      front = Stream.empty;
       rear = [];
-      schedule = Stream2.empty
+      schedule = Stream.empty
     }
 
-    let rec rotate (queue: 'a realTimeQueue) = match queue with { front; rear; schedule } ->
-      let forced_front = Lazy.force front in
+    let rec rotate ({ front; rear; schedule }: 'a realTimeQueue) =
       match rear with
          (*
            This should never happen with a valid queue because rotate is only called when
@@ -41,15 +42,15 @@ module Real_time_queue: IQueue =
           *)
         | [] -> raise Empty_queue
         | last_elem :: rest_rear ->
-        match forced_front with
-          | Nil -> Stream2.insert last_elem schedule
-          | StreamCell (first_elem, rest_front) ->
-              Stream2.insert
+        match front with
+          | lazy Nil -> Stream.insert last_elem schedule
+          | lazy (StreamCell (first_elem, rest_front)) ->
+              Stream.insert
                 first_elem
                 (rotate {
                   front = rest_front;
                   rear = rest_rear;
-                  schedule = (Stream2.insert last_elem schedule)
+                  schedule = (Stream.insert last_elem schedule)
                 })
     ;;
 
@@ -57,40 +58,39 @@ module Real_time_queue: IQueue =
      * exec evaluates the first element of the schedule stream. Because of memoization, this means that
      * whenever we evaluate 'front',  we guarantee that all operations are already memoized.
      *)
-    let exec (queue: 'a realTimeQueue) = match queue with
-      | { front; rear; schedule } ->
-        let forced_schedule = Lazy.force schedule in match forced_schedule with
-          | StreamCell (_, rest_schedule) -> { front; rear; schedule = rest_schedule }
-          (* Due to invariants, this means that |rear| > |front|  *)
-          | Nil ->
-            let newFront = rotate {front; rear; schedule = Stream2.empty} in
-            {front = newFront; rear = []; schedule = newFront}
+    let exec ({ front; rear; schedule }: 'a realTimeQueue) =
+      match schedule with
+        | lazy (StreamCell (_, rest_schedule)) ->
+          { front; rear; schedule = rest_schedule }
+        (* Due to invariants, this means that |rear| > |front|  *)
+        | lazy Nil ->
+          let newFront = rotate {front; rear; schedule = Stream.empty} in
+          {front = newFront; rear = []; schedule = newFront}
     ;;
 
-    let push (elem: 'a) (queue: 'a realTimeQueue): ('a realTimeQueue) = match queue with
-      { front; rear; schedule } -> exec { front; rear = elem :: rear ; schedule }
+    let push
+      (elem: 'a)
+      ({ front; rear; schedule }: 'a realTimeQueue):
+    ('a realTimeQueue) =
+      exec { front; rear = elem :: rear ; schedule }
     ;;
 
-    let pop (queue: 'a realTimeQueue): 'a realTimeQueue = match queue with
-      { front; rear; schedule } ->
-        let forcedfront = Lazy.force front in
-        match forcedfront with
-          | Nil -> raise Empty_queue
-          | StreamCell (_, rest_front) -> exec { front = rest_front ; rear ; schedule }
+    let pop ({ front; rear; schedule }: 'a realTimeQueue): 'a realTimeQueue =
+      match front with
+        | lazy Nil -> raise Empty_queue
+        | lazy (StreamCell (_, rest_front)) ->
+          exec { front = rest_front ; rear ; schedule }
     ;;
 
-    let peek (queue: 'a realTimeQueue): 'a = match queue with
-      { front; rear; schedule } ->
-        let forcedfront = Lazy.force front in
-        match forcedfront with
-          | Nil -> raise Empty_queue
-          | StreamCell (first_elem, _) -> first_elem
+    let peek ({ front; rear; schedule }: 'a realTimeQueue): 'a =
+        match front with
+          | lazy Nil -> raise Empty_queue
+          | lazy (StreamCell (first_elem, _)) -> first_elem
     ;;
 
-    let toList (queue: 'a realTimeQueue): 'a list = match queue with
-      { front; rear; schedule } ->
-        let frontList = Stream2.toList front in
-        frontList @ (List.rev rear)
+    let toList ({ front; rear; schedule }: 'a realTimeQueue): 'a list =
+      let frontList = Stream.toList front in
+      frontList @ (List.rev rear)
     ;;
 
 end;;
