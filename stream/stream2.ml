@@ -26,11 +26,14 @@ let rec toList (stream: 'a stream): ('a list) =
 
 let empty = lazy Nil;;
 
+let singleton x = lazy (StreamCell (x, empty));;
+
 let rec insert (elem: 'a) (stream: 'a stream): ('a stream) =
   let computedStream = Lazy.force stream in
   match computedStream with
     | Nil -> lazy (StreamCell (elem, lazy Nil))
     | StreamCell (oldElem, rest) -> lazy (StreamCell (elem, insert oldElem rest))
+
 
 (*
   Concatenate two streams. Note that it never evaluates streamB and it only
