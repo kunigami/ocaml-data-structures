@@ -34,7 +34,9 @@ module Real_time_queue: IQueue =
       schedule = Stream.empty
     }
 
-    let rec rotate ({ front; rear; schedule }: 'a realTimeQueue) =
+    (* Rotate the queue to generate a new front of the queue by reversing the
+    rear and appending it *)
+    let rec rotate ({ front; rear; schedule }: 'a realTimeQueue): 'a stream =
       match rear with
          (*
            This should never happen with a valid queue because rotate is only called when
@@ -42,16 +44,21 @@ module Real_time_queue: IQueue =
           *)
         | [] -> raise Empty_queue
         | last_elem :: rest_rear ->
+        let newSchedule = Stream.insert last_elem schedule in
         match front with
-          | lazy Nil -> Stream.insert last_elem schedule
+          (*
+            At this point, newSchedule contains the rear of the queue reversed
+          *)
+          | lazy Nil -> newSchedule
           | lazy (StreamCell (first_elem, rest_front)) ->
-              Stream.insert
-                first_elem
-                (rotate {
-                  front = rest_front;
-                  rear = rest_rear;
-                  schedule = (Stream.insert last_elem schedule)
-                })
+            lazy (
+              let newFront = rotate {
+                front = rest_front;
+                rear = rest_rear;
+                schedule = newSchedule
+              } in
+              StreamCell (first_elem, newFront)
+            )
     ;;
 
     (*
@@ -64,6 +71,7 @@ module Real_time_queue: IQueue =
           { front; rear; schedule = rest_schedule }
         (* Due to invariants, this means that |rear| > |front|  *)
         | lazy Nil ->
+          (* Now newFront = front @ (rev rear) *)
           let newFront = rotate {front; rear; schedule = Stream.empty} in
           {front = newFront; rear = []; schedule = newFront}
     ;;
