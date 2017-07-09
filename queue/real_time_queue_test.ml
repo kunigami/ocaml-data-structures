@@ -1,9 +1,8 @@
 open Real_time_queue;;
-open IQueue;;
 open Test_base;;
 
-let queueModule = (module Real_time_queue: IQueue);;
+module RealTimeQueueTest = Test_base.MakeTest(Real_time_queue);;
 
 let () =
-  runTests queueModule
+  RealTimeQueueTest.run
 ;;

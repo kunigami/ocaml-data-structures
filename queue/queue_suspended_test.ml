@@ -1,9 +1,8 @@
 open Queue_suspended;;
-open IQueue;;
 open Test_base;;
 
-let queueModule = (module Queue_suspended: IQueue);;
+module SuspendedQueueTest = Test_base.MakeTest(Queue_suspended);;
 
 let () =
-  runTests queueModule
+  SuspendedQueueTest.run
 ;;

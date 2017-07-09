@@ -1,9 +1,8 @@
 open Queue_stream;;
-open IQueue;;
 open Test_base;;
 
-let queueModule = (module Queue_stream: IQueue);;
+module StreamQueueTest = Test_base.MakeTest(Queue_stream);;
 
 let () =
-  runTests queueModule
+  StreamQueueTest.run
 ;;

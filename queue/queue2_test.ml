@@ -1,9 +1,8 @@
 open Queue2;;
-open IQueue;;
 open Test_base;;
 
-let queueModule = (module Queue2: IQueue);;
+module Queue2Test = Test_base.MakeTest(Queue2);;
 
 let () =
-  runTests queueModule
+  Queue2Test.run
 ;;
