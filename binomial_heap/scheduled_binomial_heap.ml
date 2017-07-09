@@ -40,11 +40,15 @@ module Scheduled_binomial_heap
   (Element: Set.OrderedType):
 IHeap with type tv = Element.t =
   struct
+    (*
+      Binomial tree corresponding to a digit in the heap.
+    *)
     type tree = Node of Element.t * tree list;;
     type tv = Element.t
     (*
-      A heap with n elements can be associated to the binary representation of n.
-      The 0's correspond to no tree, while the 1s in position i correspond to trees with size 2^i
+      A heap with n elements can be associated to the binary representation of
+      n. The 0's correspond to no tree, while the 1s in position i correspond to
+      trees with size 2^i
     *)
     type digit = Zero | One of tree;;
     type schedule = digit stream list;;
@@ -80,22 +84,24 @@ IHeap with type tv = Element.t =
     ;;
 
     (*
-      Insert a tree into a stream of digits. This has a strong assumption that the rank of the tree
-      being inserted has the right rank associated with the position of the current digits.
+      Insert a tree into a stream of digits. This assumes that
+      the rank of the tree being inserted has the rank corresponding to the
+      position of the current digits.
 
-      This is analogous to the carrying over operation of adding a 1 to a binary number. For
-      example, if we are to add 1 to 1011, then we'll have
+      This is analogous to the carrying over operation of adding a 1 to a binary
+      number. For example, if we are to add 1 to 1011, then we'll have
 
       101(11) -> match One, link -> 10(11)0
       10(11)0 -> match One, link -> 1(1)00
       1(1)00 -> match Zero -> 1100
     *)
     let rec insertTree (tree: tree) (digits: digit stream): digit stream =
-      let forcedDigits = Lazy.force digits in match forcedDigits with
-        | Nil -> Stream.empty |> Stream.insert (One tree)
-        | StreamCell (firstDigit, rest) -> match firstDigit with
+      match digits with
+        | lazy Nil -> Stream.empty |> Stream.insert (One tree)
+        | lazy (StreamCell (firstDigit, rest)) -> match firstDigit with
           | Zero -> Stream.insert (One tree) rest
-          | One firstTree -> Stream.insert Zero (insertTree (link tree firstTree) rest)
+          | One firstTree ->
+            lazy (StreamCell (Zero, (insertTree (link tree firstTree) rest)))
     ;;
 
     (*
@@ -103,12 +109,13 @@ IHeap with type tv = Element.t =
       the item is Zero, we re-schedule the rest of the digits. If it's a One, it
       means that the remaining digits have been executed, so we just discard it.
     *)
-    let execSchedule (schedule: digit stream list): digit stream list = match schedule with
+    let execSchedule
+      (schedule: digit stream list)
+    : digit stream list = match schedule with
       | [] -> []
-      | firstItem :: rest ->
-        let forcedFirstItem = Lazy.force firstItem in match forcedFirstItem with
-          | StreamCell (Zero, job) -> job :: rest
-          | _ -> rest
+      | firstItem :: rest -> match firstItem with
+        | lazy (StreamCell (Zero, job)) -> job :: rest
+        | _ -> rest
     ;;
 
     (*
@@ -127,31 +134,32 @@ IHeap with type tv = Element.t =
     ;;
 
     (*
-      Given the digits representing the non-scheduled part of the heap, we scan through it to find
-      the tree (digit) with the smallest root.
+      Given the digits representing the non-scheduled part of the heap, we scan
+      through it to find the tree (digit) with the smallest root.
     *)
     let rec removeMinTree (digits: digit stream): (tree * digit stream) =
-      let forcedDigits = Lazy.force digits in match forcedDigits with
-        | Nil -> raise Empty_heap
+      match digits with
+        | lazy Nil -> raise Empty_heap
 
         (* No tree here. Keep searching *)
-        | StreamCell (Zero, rest) ->
+        | lazy (StreamCell (Zero, rest)) ->
           let (newTree, newDigits) = removeMinTree rest in
           (newTree, Stream.insert Zero newDigits)
 
         (* Tree found *)
-        | StreamCell (One tree, rest) -> (
-          let forcedRestDigits = Lazy.force rest in match forcedRestDigits with
-            (* This was the last digit. Return the tree *)
-            | Nil -> (tree, Stream.empty)
-            (* Compare the root of the current tree with the minimum found so far. *)
-            | _ ->
-              let root = getRoot tree in
-              let (minTree, newDigits) = removeMinTree rest in
-              let minRoot = getRoot minTree in
-                if ((Element.compare root minRoot) <= 0) then (tree, Stream.insert Zero rest)
+        | lazy (StreamCell (One tree, rest)) -> (match rest with
+          (* This was the last digit. Return the tree *)
+          | lazy Nil -> (tree, Stream.empty)
+          (* Compare the root of the current tree with the minimum found so
+          far. *)
+          | _ ->
+            let root = getRoot tree in
+            let (minTree, newDigits) = removeMinTree rest in
+            let minRoot = getRoot minTree in
+              if ((Element.compare root minRoot) <= 0)
+                then (tree, Stream.insert Zero rest)
                 else (minTree, Stream.insert (One tree) newDigits)
-          )
+        )
     ;;
 
     let findMin (heap: heap): tv = match heap with {digits} ->
@@ -160,9 +168,9 @@ IHeap with type tv = Element.t =
     ;;
 
     let rec evaluateDigits (digits: digit stream): digit stream =
-      let forcedDigits = Lazy.force digits in match forcedDigits with
-        | Nil -> digits
-        | StreamCell (_, rest) ->
+      match digits with
+        | lazy Nil -> digits
+        | lazy (StreamCell (_, rest)) ->
           (* We don't need the results. Just evaluate the stream *)
           let () = ignore (evaluateDigits rest) in
           digits
