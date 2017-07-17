@@ -75,6 +75,12 @@ let rec drop (n: int) (stream: 'a stream): ('a stream) =
 ;;
 
 (*
+  Combines take and drop to partition a stream at position n.
+*)
+let rec partitionAt (n: int) (stream: 'a stream): ('a stream * 'a stream) =
+  (take n stream, drop n stream);;
+
+(*
   Reverse the order of the elements in the stream. Has to evaluate the entire
   stream
 *)
