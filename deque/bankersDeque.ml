@@ -31,7 +31,7 @@ module BankersDeque: IDeque =
       rearSize = 0;
     }
 
-    let isEmpty {front; frontSize; rear; rearSize}: bool =
+    let isEmpty {frontSize; rearSize}: bool =
       frontSize + rearSize == 0
     ;;
 
