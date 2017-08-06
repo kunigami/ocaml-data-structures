@@ -1,5 +1,6 @@
 open IQueue;;
 open OUnit2;;
+open MakeQueueUtils;;
 
 (*
   This file contains tests to the abstract data structure queue (regardless of implementation).
@@ -9,9 +10,11 @@ open OUnit2;;
 
 module MakeTest(Queue: IQueue) =
   struct
+    module QueueUtils = MakeQueueUtils(Queue);;
+
     let testSingleInsertion text_ctx =
       let result = Queue.push 10 Queue.newEmpty in
-      let resultAsList = Queue.toList result in
+      let resultAsList = QueueUtils.toList result in
       assert_equal
         ~msg:"Should insert one element properly"
         resultAsList
@@ -26,20 +29,21 @@ module MakeTest(Queue: IQueue) =
       ) in
       assert_equal
         ~msg:"Should insert many elements properly"
-        (Queue.toList result)
+        (QueueUtils.toList result)
         [10; 20; 30]
     ;;
 
     let testInsertingAndRemovingMultipleElements text_ctx =
       assert_equal ~msg:"Should return a queue with elements in order"
-        Queue.(
+        (Queue.(
           newEmpty |>
           push 1 |>
           push 2 |>
           push 3 |>
           pop |>
-          push 4 |>
-          toList
+          push 4
+        ) |>
+        QueueUtils.toList
         )
         [2; 3; 4]
     ;;
@@ -69,9 +73,8 @@ module MakeTest(Queue: IQueue) =
           push 8 |>
           (* Executes stream -> [1 [2 [3 [rot([], [4], [5, 6, 7])]]]] *)
           (* f: [1, 2, 3, 4, 5, 6, 7], r: [8, 9], s: [3, 4, 5, 6, 7] *)
-          push 9 |>
-          toList
-      ) in
+          push 9
+      ) |> QueueUtils.toList in
       assert_equal ~msg:"Should return a queue with elements in order"
         actual
         [1; 2; 3; 4; 5; 6; 7; 8; 9]
@@ -83,7 +86,7 @@ module MakeTest(Queue: IQueue) =
         "testSingleInsertion">:: testSingleInsertion;
         "testMultipleInsertions">:: testMultipleInsertions;
         "testInsertingAndRemovingMultipleElements">:: testInsertingAndRemovingMultipleElements;
-        "testTest">:: testRotations;
+        "testRotations">:: testRotations;
        ]
     ;;
 
