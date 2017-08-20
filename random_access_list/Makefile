@@ -6,14 +6,19 @@ test_dependencies = randomAccessListTestBase.ml
 compiler_flags = -linkpkg -g
 
 all: test
-test: binaryRandomAccessListTest
+test: binaryRandomAccessListTest skewBinaryRandomAccessListTest
 binaryRandomAccessListTest: | $(OBJDIR)
 	ocamlfind ocamlc -o $(OBJDIR)/$@ $(package_dependencies) $(compiler_flags) \
 		$(binary_dependencies) binaryRandomAccessList.ml \
-		$(test_dependencies) binaryRandomAccessListTest.ml
+		$(test_dependencies) $@.ml
+	$(OBJDIR)/$@
+skewBinaryRandomAccessListTest: | $(OBJDIR)
+	ocamlfind ocamlc -o $(OBJDIR)/$@ $(package_dependencies) $(compiler_flags) \
+		$(binary_dependencies) skewBinaryRandomAccessList.ml \
+		$(test_dependencies) $@.ml
 	$(OBJDIR)/$@
 
-.PHONY: random_access_list_test
+.PHONY: binaryRandomAccessListTest skewBinaryRandomAccessListTest
 clean:
 	rm -f *.cmi *.cmo ./binaryRandomAccessListTest
 $(OBJDIR): # Creates bin directory if it does not exist
