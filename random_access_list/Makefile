@@ -6,7 +6,8 @@ test_dependencies = randomAccessListTestBase.ml
 compiler_flags = -linkpkg -g
 
 all: test
-test: binaryRandomAccessListTest skewBinaryRandomAccessListTest
+test: binaryRandomAccessListTest skewBinaryRandomAccessListTest \
+		  sequenceBinaryRandomAccessListTest
 binaryRandomAccessListTest: | $(OBJDIR)
 	ocamlfind ocamlc -o $(OBJDIR)/$@ $(package_dependencies) $(compiler_flags) \
 		$(binary_dependencies) binaryRandomAccessList.ml \
@@ -15,6 +16,11 @@ binaryRandomAccessListTest: | $(OBJDIR)
 skewBinaryRandomAccessListTest: | $(OBJDIR)
 	ocamlfind ocamlc -o $(OBJDIR)/$@ $(package_dependencies) $(compiler_flags) \
 		$(binary_dependencies) skewBinaryRandomAccessList.ml \
+		$(test_dependencies) $@.ml
+	$(OBJDIR)/$@
+sequenceBinaryRandomAccessListTest: | $(OBJDIR)
+	ocamlfind ocamlc -o $(OBJDIR)/$@ $(package_dependencies) $(compiler_flags) \
+		$(binary_dependencies) sequenceBinaryRandomAccessList.ml \
 		$(test_dependencies) $@.ml
 	$(OBJDIR)/$@
 
