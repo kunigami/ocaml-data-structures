@@ -1,6 +1,8 @@
 open IQueue;;
 open OUnit2;;
 open MakeQueueUtils;;
+open BatList;;
+open Exceptions;;
 
 (*
   This file contains tests to the abstract data structure queue (regardless of implementation).
@@ -10,6 +12,7 @@ open MakeQueueUtils;;
 
 module MakeTest(Queue: IQueue) =
   struct
+
     module QueueUtils = MakeQueueUtils(Queue);;
 
     let testSingleInsertion text_ctx =
@@ -80,6 +83,24 @@ module MakeTest(Queue: IQueue) =
         [1; 2; 3; 4; 5; 6; 7; 8; 9]
     ;;
 
+    let testInsertingManyItems text_ctx =
+      let elements = BatList.range 1 `To 100 in
+      let result = (List.fold_left
+        (BatPervasives.flip Queue.push)
+        Queue.newEmpty
+        elements
+      ) in
+      assert_equal
+        ~msg:"Should insert many elements properly"
+        (QueueUtils.toList result)
+        elements
+    ;;
+
+    let testRemovingElementFromEmptyList text_ctx =
+      let emptyQueue = Queue.newEmpty in
+      assert_raises (Exceptions.Empty_queue) (fun () -> Queue.pop emptyQueue)
+    ;;
+
     let suite =
       "suite">:::
        [
@@ -87,6 +108,8 @@ module MakeTest(Queue: IQueue) =
         "testMultipleInsertions">:: testMultipleInsertions;
         "testInsertingAndRemovingMultipleElements">:: testInsertingAndRemovingMultipleElements;
         "testRotations">:: testRotations;
+        "testInsertingManyItems">:: testInsertingManyItems;
+        "testRemovingElementFromEmptyList">:: testRemovingElementFromEmptyList;
        ]
     ;;
 

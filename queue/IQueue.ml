@@ -9,4 +9,4 @@ module type IQueue =
    val isEmpty : 'a t -> bool
    val pop: 'a t -> 'a t
    val peek: 'a t -> 'a
- end;;
+ end
