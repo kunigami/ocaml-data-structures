@@ -192,8 +192,8 @@ module SimpleCatenableDeque(Deque: IDeque): ICatenableDeque =
           calls.
          *)
         let newMiddle = lazy (
-          let combinedDeque1 = pushFront rear1 (Lazy.force middle1) in
-          let combinedDeque2 = pushBack front2 (Lazy.force middle2) in
+          let combinedDeque1 = pushBack rear1 (Lazy.force middle1) in
+          let combinedDeque2 = pushFront front2 (Lazy.force middle2) in
           concat combinedDeque1 combinedDeque2
         ) in
         Deep {
