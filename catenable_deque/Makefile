@@ -9,16 +9,21 @@ deque_dependencies = -I ../deque/ ../deque/iDeque.ml ../deque/bankersDeque.ml \
 test_dependencies = iCatenableDeque.ml catenableDequeBaseTest.ml
 
 all: test
-test:
+test: simpleCatenableDequeTest implicitCatenableDequeTest
 simpleCatenableDequeTest: | $(OBJDIR)
 	$(compiler) -o $(OBJDIR)/$@ $(package_dependencies) \
 	$(compiler_flags) $(stream_dependencies) $(deque_dependencies) \
 	$(test_dependencies) simpleCatenableDeque.ml $@.ml
 	$(OBJDIR)/$@
+implicitCatenableDequeTest: | $(OBJDIR)
+	$(compiler) -o $(OBJDIR)/$@ $(package_dependencies) \
+	$(compiler_flags) $(stream_dependencies) $(deque_dependencies) \
+	$(test_dependencies) implicitCatenableDeque.ml $@.ml
+	$(OBJDIR)/$@
 
 clean:
 	rm -f $(OBJDIR)/*
 
-.PHONY: simpleCatenableDequeTest
+.PHONY: simpleCatenableDequeTest implicitCatenableDequeTest
 $(OBJDIR): # Creates bin directory if it does not exist
 	mkdir -p $(OBJDIR)

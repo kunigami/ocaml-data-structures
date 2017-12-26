@@ -70,6 +70,10 @@ module MakeTest(CatenableDeque: ICatenableDeque) =
       let cat1234 = CatenableDeque.concat cat12 cat34 in
       let cat5678 = CatenableDeque.concat cat56 cat78 in
       let result = CatenableDeque.concat cat1234 cat5678 in
+      let () =
+        List.iter
+        (fun x -> print_int x; print_string " ")
+        (DequeTest.toList result) in
       assert_equal
         ~msg:"Should concatenate deques properly"
         (DequeTest.toList result)
@@ -77,12 +81,13 @@ module MakeTest(CatenableDeque: ICatenableDeque) =
 
     let getTests =
       let catenableTests = [
-        "testConcatenatingTwoDeques">:: testConcatenatingTwoDeques;
-        "testOperationsOnCatenatedDeque">:: testOperationsOnCatenatedDeque;
+        (* "testConcatenatingTwoDeques">:: testConcatenatingTwoDeques;
+        "testOperationsOnCatenatedDeque">:: testOperationsOnCatenatedDeque; *)
         "testMultipleConcatenations">:: testMultipleConcatenations;
       ] in
       (* All tests to deques are applicable to catenable deques *)
-      let dequeTests = DequeTest.getTests
+      (* let dequeTests = DequeTest.getTests *)
+      let dequeTests = []
       in List.append catenableTests dequeTests
 
     let run = run_test_tt_main ("suite">::: getTests)
